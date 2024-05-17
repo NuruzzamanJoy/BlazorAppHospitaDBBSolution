@@ -1,0 +1,6 @@
+@BlazorAppHospitaDBB.Server_HostAddress = http://localhost:5223
+
+GET {{BlazorAppHospitaDBB.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

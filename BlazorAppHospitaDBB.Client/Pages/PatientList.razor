@@ -1,0 +1,85 @@
+﻿@page "/patients"
+@using BlazorAppHospitaDBB.Shared
+@inject HttpClient http
+@inject IJSRuntime jsRuntime
+@inject NavigationManager manager
+<h2>Patient List</h2>
+<div class="form-group">
+    <a class="btn btn-success" href="patients/create">Create New Patient</a>
+</div>
+@if (patients == null)
+{
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+}
+else if (patients.Count == 0)
+{
+    <text>There is no record to show </text>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Admit Date</th>
+                <th>Active</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var patient in patients)
+            {
+                <tr>
+                    <td>@patient.Id</td>
+                    <td><img height="50" width="50" src="@patient.ImageUrl"></td>
+                    <td>@patient.Name</td>
+                    <td>@patient.AdmitDate.ToShortDateString()</td>
+                    <td>@patient.IsActive</td>
+
+                    <td>
+                        <a class="btn btn-sm btn-dark" href="patients/edit/@patient.Id">Edit</a>|
+                        <button class="btn btn-sm btn-danger"
+                                @onclick="async () => await Delete(patient)">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<Patient> patients { get; set; }
+    protected async override Task OnInitializedAsync()
+    {
+        patients = await http.GetFromJsonAsync<List<Patient>>("api/patients");
+    }
+    private void ShowPatientInfo(int patientId)
+    {
+        manager.NavigateTo($"patients/info/{patientId}");
+    }
+    private async Task Delete(Patient patient)
+    {
+        bool confirmed = await jsRuntime.InvokeAsync<bool>("confirm", "Are you sure, you want to delete this record?");
+        if (confirmed)
+        {
+            var response = await http.DeleteAsync($"api/patients/{patient.Id}");
+            if (response.IsSuccessStatusCode)
+            {
+                patients.Remove(patient);
+            }
+            else
+            {
+
+            }
+        }
+    }
+
+}

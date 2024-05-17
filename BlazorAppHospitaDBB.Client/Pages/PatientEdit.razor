@@ -1,0 +1,55 @@
+﻿@page "/patients/edit/{PatientId:int}"
+@inject HttpClient http
+@inject NavigationManager manager
+@using System.Text.Json
+@using BlazorAppHospitaDBB.Shared
+<h3>Patient Info Edit</h3>
+@if (patient == null)
+{
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div>
+        <PatientsForm patient="patient" OnValidSubmit="OnValidSubmit"></PatientsForm>
+    </div>
+}
+@code {
+
+    [Parameter]
+    public int PatientId { get; set; }
+    private Patient patient;
+    private async Task OnValidSubmit()
+    {
+        var response = await http.PutAsJsonAsync("api/patients", patient);
+        if (response.IsSuccessStatusCode)
+        {
+            manager.NavigateTo("patients");
+        }
+        else
+        {
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
+        }
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await http.GetAsync($"api/patients/{PatientId}");
+        if (response.IsSuccessStatusCode)
+        {
+            patient = JsonSerializer.Deserialize<Patient>
+            (await response.Content.ReadAsStringAsync(), new JsonSerializerOptions()
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+        }
+        else
+        {
+            manager.NavigateTo("patients");
+        }
+    }
+}

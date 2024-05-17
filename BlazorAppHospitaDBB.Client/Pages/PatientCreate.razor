@@ -1,0 +1,25 @@
+﻿@page "/patients/create"
+@using BlazorAppHospitaDBB.Shared
+@inject HttpClient http
+@inject NavigationManager manager
+<h3>Create New Patient</h3>
+<div class="row">
+    <PatientsForm patient="patient" OnValidSubmit="OnValidSubmit"></PatientsForm>
+</div>
+@code {
+    Patient patient = new Patient();
+    private async Task OnValidSubmit()
+    {
+        var response = await http.PostAsJsonAsync("api/patients", patient);
+        var body = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"The new patient id is {body}");
+            manager.NavigateTo("patients");
+        }
+        else
+        {
+            Console.WriteLine($"{body}");
+        }
+    }
+}
